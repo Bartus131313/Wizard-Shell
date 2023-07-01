@@ -45,26 +45,22 @@ config = configparser.ConfigParser()
 
 #config.read(os.path.join(CONFIGS, 'config.ini'))
 
-addons = [os.path.splitext(file_name)[0] for file_name in os.listdir(ADDONS)]
+addons = [os.path.splitext(file_name)[0] for file_name in os.listdir(ADDONS) if file_name.endswith('.py')]
 
 addons_true = False
 
+add_commands_dis = []
+add_commands = []
+add_commands_path = []
+
 try: 
-    add_commands_dis = []
-    add_commands = []
-    add_commands_path = []
-
     for addon in addons:
-        importlib.import_module(addon)
         imported_addon = importlib.import_module(addon)
-
         for i in imported_addon.commands():
             add_commands.append(i)
             add_commands_path.append(addon)
-
         for j in imported_addon.commands_display():
             add_commands_dis.append(j)
-
     addons_true = True
 except:
    addons_true = False

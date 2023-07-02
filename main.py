@@ -5,6 +5,8 @@ import importlib
 import sys
 import configparser
 import requests
+import time
+import subprocess
 
 # SETTINGS
 
@@ -12,14 +14,14 @@ VERSION_URL = 'https://pastebin.com/raw/Buzs6RGN'
 
 PROGRAM_RUN = True
 
-VERSION = 'BETA 0.1.0.0'
+VERSION = 'BETA 0.1.1.0'
 LATEST_VERSION = ''
 
 PROGRAM_PATH = os.path.dirname(__file__)
 RESOURCES = os.path.join(PROGRAM_PATH, 'resources')
 SCRIPTS = os.path.join(PROGRAM_PATH, 'scripts')
 ADDONS = os.path.join(PROGRAM_PATH, 'addons')
-#CONFIGS = os.path.join(PROGRAM_PATH, 'configs')
+CONFIGS = os.path.join(PROGRAM_PATH, 'configs')
 
 ICON = os.path.join(RESOURCES, 'icon.png')
 TITLE = 'WS | Wizard Shell'
@@ -43,7 +45,12 @@ else:
 
 config = configparser.ConfigParser()
 
-#config.read(os.path.join(CONFIGS, 'config.ini'))
+config.read(os.path.join(CONFIGS, 'config.ini'))
+
+DEBUG_MODE = config.get('Settings', 'debug_mode')
+
+if DEBUG_MODE == 'True':
+    TITLE = 'WS | Wizard Shell [DEBUG MODE]'
 
 addons = [os.path.splitext(file_name)[0] for file_name in os.listdir(ADDONS) if file_name.endswith('.py')]
 
@@ -72,10 +79,10 @@ def change_cmd_title(title):
 
 def start_msg():
     print()
-    print(f'{Fore.BLUE}{"   > WS | Wizard Shell"}{Style.RESET_ALL}')
-    print(f'{Fore.RED}{"   > by Bartek Kansy"}{Style.RESET_ALL}\n')
-    print(f'{Fore.BLUE}{"   > VER.: "}{Style.RESET_ALL}{Fore.GREEN}{VERSION}{Style.RESET_ALL}\n')
-    print(f'{Fore.YELLOW}{"   > ws [--info | --help]"}{Style.RESET_ALL}\n')
+    print(f'{Fore.BLUE}   > WS | Wizard Shell{Style.RESET_ALL}')
+    print(f'{Fore.RED}   > by Bartek Kansy{Style.RESET_ALL}\n')
+    print(f'{Fore.BLUE}   > VER.: {Style.RESET_ALL}{Fore.GREEN}{VERSION}{Style.RESET_ALL}\n')
+    print(f'{Fore.YELLOW}   > ws [--info | --help]{Style.RESET_ALL}\n')
     print('------------------------------------->\n')
 
 # COMMANDS
@@ -85,6 +92,7 @@ def ws_usage():
     print(f'{Fore.YELLOW}>> Arguments:\n')
     print(f'>> --info')
     print(f'>> --help')
+    print(f'>> --debug')
     print(f'{Style.RESET_ALL}')
 
 def ws_info():
@@ -92,11 +100,31 @@ def ws_info():
 
 def ws_help():
     print(f'{Fore.YELLOW}>>> All commands in Wizard Shell:')
-    print(f'{Fore.GREEN}>> ws [--info | --help]')
+    print(f'{Fore.GREEN}>> ws [--info | --help | --debug]')
     print(f'{Fore.GREEN}>> addons [--info | --help]\n')
     print(f'>> cls')
     print(f'>> exit')
     print(f'{Style.RESET_ALL}')
+
+def ws_debug():
+    global DEBUG_MODE
+
+    if DEBUG_MODE == 'False':
+        DEBUG_MODE = 'True'
+    elif DEBUG_MODE == 'True':
+        DEBUG_MODE = 'False'
+
+    print(f'{Fore.YELLOW}>>> Changed debug mode to: {DEBUG_MODE}')
+
+    config.set('Settings', 'debug_mode', str(DEBUG_MODE))
+
+    with open(os.path.join(CONFIGS, 'config.ini'), 'w') as config_file:
+        config.write(config_file)
+
+    time.sleep(3)
+    os.system('cls')    
+    subprocess.Popen(['start', sys.executable] + sys.argv, shell=True)
+    sys.exit()
 
 def addons_help():
     if addons_true:
@@ -178,6 +206,8 @@ if __name__ == '__main__':
                 ws_info()
             elif ws_input == '--help':
                 ws_help()
+            elif ws_input == '--debug':
+                ws_debug()
             elif len(ws_words) == 0:
                 ws_usage()
             else:

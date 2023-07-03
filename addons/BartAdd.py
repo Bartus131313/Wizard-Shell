@@ -1,6 +1,5 @@
 from colorama import Fore, Style
 import subprocess
-import webbrowser
 
 def main(command, arg):
     if command == 'print':
@@ -37,7 +36,6 @@ def start_cmd(arg):
 # Settings
 
 def commands():
-    return ['print', 'start']
-
-def commands_display():
-    return ['print [Color (#f00 / #0f0 / #00f)] [Message]', 'start [Argument]']
+    return [{'print' : '[Color (#f00 / #0f0 / #00f)] [Message]', 
+            'start' : '[Argument]'
+            }]

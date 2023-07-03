@@ -14,8 +14,15 @@ VERSION_URL = 'https://pastebin.com/raw/Buzs6RGN'
 
 PROGRAM_RUN = True
 
-VERSION = 'BETA 0.1.1.0'
+VERSION = 'BETA 0.1.2.0'
 LATEST_VERSION = ''
+
+DEF_COMMANDS = [
+    'ws',
+    'addons',
+    'cls',
+    'exit'
+    ]
 
 PROGRAM_PATH = os.path.dirname(__file__)
 RESOURCES = os.path.join(PROGRAM_PATH, 'resources')
@@ -54,23 +61,29 @@ if DEBUG_MODE == 'True':
 
 addons = [os.path.splitext(file_name)[0] for file_name in os.listdir(ADDONS) if file_name.endswith('.py')]
 
-addons_true = False
+addons_true = True
 
 add_commands_dis = []
-add_commands = []
 add_commands_path = []
+add_commands = []
 
-try: 
+# LOAD ADDONS
+
+try:
     for addon in addons:
         imported_addon = importlib.import_module(addon)
-        for i in imported_addon.commands():
-            add_commands.append(i)
-            add_commands_path.append(addon)
-        for j in imported_addon.commands_display():
-            add_commands_dis.append(j)
-    addons_true = True
+        for custom_cmd in imported_addon.commands():
+            for key, value in custom_cmd.items():
+                if not key in DEF_COMMANDS:
+                    if not value.startswith('['):
+                        value = f'[{value}'
+                    if not value.endswith(']'):
+                        value = f'{value}]'
+                    add_commands_dis.append({key : value})
+                    add_commands.append(key)
+                    add_commands_path.append(addon)
 except:
-   addons_true = False
+    addons_true = False
 
 # ELSE
 
@@ -99,9 +112,10 @@ def ws_info():
     print(f'{Fore.YELLOW}>>> {Fore.BLUE}Wizard Shell{Fore.YELLOW} is a console designed to run scripts written in {Fore.GREEN}Python{Fore.YELLOW} in the simplest possible way.{Style.RESET_ALL}\n')
 
 def ws_help():
-    print(f'{Fore.YELLOW}>>> All commands in Wizard Shell:')
-    print(f'{Fore.GREEN}>> ws [--info | --help | --debug]')
-    print(f'{Fore.GREEN}>> addons [--info | --help]\n')
+    print(f'{Fore.YELLOW}>>> All commands in Wizard Shell:{Fore.GREEN}')
+    print(f'>> ws [--info | --help | --debug]')
+    print(f'>> addons [--info | --help]')
+    print(f'')
     print(f'>> cls')
     print(f'>> exit')
     print(f'{Style.RESET_ALL}')
@@ -130,9 +144,10 @@ def addons_help():
     if addons_true:
         l = 0
         print(f"{Fore.GREEN}>>> Addons commands:")
-        for k in add_commands_dis:
-            print(f'{Fore.YELLOW}>> {k} -|- {add_commands_path[l]}{Style.RESET_ALL}')
-            l += 1
+        for add_cmd in add_commands_dis:
+            for cmd, value in add_cmd.items():
+                print(f'{Fore.YELLOW}>> {cmd} {value} -|- {add_commands_path[l]}{Style.RESET_ALL}')
+                l += 1
     else:
         print(f'{Fore.YELLOW}>> There are no addons loaded{Style.RESET_ALL}')
 
@@ -171,17 +186,14 @@ if __name__ == '__main__':
 
         custom_cmd = False
 
-        o = 0
-
         words = user_input.split()
 
-        for add_cmd in add_commands:
-            if words[0].lower() == add_cmd:
+        for cmd, path in add_commands, add_commands_path:
+            if words[0].lower() == cmd:
                 arg_input = user_input[low_input.find(words[0]) + len(words[0]):].strip()
-                imported_addon_cmd = importlib.import_module(add_commands_path[o])
-                imported_addon_cmd.main(add_cmd, arg_input)
+                imported_addon_cmd = importlib.import_module(path)
+                imported_addon_cmd.main(cmd, arg_input)
                 custom_cmd = True
-            o += 1
 
         if addons_index != -1:
             addons_input = user_input[addons_index + len("addons"):].strip()

@@ -14,7 +14,7 @@ VERSION_URL = 'https://pastebin.com/raw/Buzs6RGN'
 
 PROGRAM_RUN = True
 
-VERSION = 'BETA 0.1.2.0'
+VERSION = 'BETA 0.1.3.4'
 LATEST_VERSION = ''
 
 DEF_COMMANDS = [
@@ -73,14 +73,15 @@ try:
     for addon in addons:
         imported_addon = importlib.import_module(addon)
         for custom_cmd in imported_addon.commands():
-            for key, value in custom_cmd.items():
-                if not key in DEF_COMMANDS:
-                    if not value.startswith('['):
-                        value = f'[{value}'
-                    if not value.endswith(']'):
-                        value = f'{value}]'
-                    add_commands_dis.append({key : value})
-                    add_commands.append(key)
+            for cmd, dsc in custom_cmd.items():
+                if not cmd in DEF_COMMANDS:
+                    if dsc.strip():
+                        if not dsc.startswith('['):
+                            dsc = f'[{dsc}'
+                        if not dsc.endswith(']'):
+                            dsc = f'{dsc}]'
+                    add_commands_dis.append({cmd : dsc})
+                    add_commands.append(cmd)
                     add_commands_path.append(addon)
 except:
     addons_true = False
@@ -91,6 +92,7 @@ def change_cmd_title(title):
     ctypes.windll.kernel32.SetConsoleTitleW(title)
 
 def start_msg():
+    os.system('cls')
     print()
     print(f'{Fore.BLUE}   > WS | Wizard Shell{Style.RESET_ALL}')
     print(f'{Fore.RED}   > by Bartek Kansy{Style.RESET_ALL}\n')
@@ -100,7 +102,7 @@ def start_msg():
 
 # COMMANDS
 
-def ws_usage():
+def ws_usage(): # Write how to use 'WS' command
     print(f'{Fore.GREEN}>>> Usage: WS [Argument]\n')
     print(f'{Fore.YELLOW}>> Arguments:\n')
     print(f'>> --info')
@@ -108,19 +110,19 @@ def ws_usage():
     print(f'>> --debug')
     print(f'{Style.RESET_ALL}')
 
-def ws_info():
+def ws_info(): # Write what is Wizard Shell
     print(f'{Fore.YELLOW}>>> {Fore.BLUE}Wizard Shell{Fore.YELLOW} is a console designed to run scripts written in {Fore.GREEN}Python{Fore.YELLOW} in the simplest possible way.{Style.RESET_ALL}\n')
 
-def ws_help():
+def ws_help(): # Write all commands in Wizard Shel
     print(f'{Fore.YELLOW}>>> All commands in Wizard Shell:{Fore.GREEN}')
     print(f'>> ws [--info | --help | --debug]')
-    print(f'>> addons [--info | --help]')
+    print(f'>> addons [--info | --help | addon name]')
     print(f'')
     print(f'>> cls')
     print(f'>> exit')
     print(f'{Style.RESET_ALL}')
 
-def ws_debug():
+def ws_debug(): # Enable / Disable debug mode
     global DEBUG_MODE
 
     if DEBUG_MODE == 'False':
@@ -140,7 +142,7 @@ def ws_debug():
     subprocess.Popen(['start', sys.executable] + sys.argv, shell=True)
     sys.exit()
 
-def addons_help():
+def addons_help(): # Write all addon commands
     if addons_true:
         l = 0
         print(f"{Fore.GREEN}>>> Addons commands:")
@@ -151,7 +153,7 @@ def addons_help():
     else:
         print(f'{Fore.YELLOW}>> There are no addons loaded{Style.RESET_ALL}')
 
-def addons_info():
+def addons_info(): # Write what are addons
     print(f'{Fore.YELLOW}>>> Addons are scripts that add commands to the {Fore.BLUE}Wizard Shell{Fore.YELLOW}.{Style.RESET_ALL}')
 
 def addons_usage():
@@ -160,6 +162,21 @@ def addons_usage():
     print(f'>> --info')
     print(f'>> --help')
     print(f'{Style.RESET_ALL}')
+
+def addons_addon_help(addon): # Write all commands for written addon
+    i = 0
+    print(f'{Fore.GREEN}>>> Commands from "{addon}" addon:\n')
+    for custom_cmd in add_commands_dis:
+        if add_commands_path[i] == addon:
+            for cmd, dsc in custom_cmd.items():
+                print(f'{Fore.YELLOW}>> {cmd} {dsc}')
+        i += 1
+
+# FOR SCRIPTS TO RETURN
+
+def ws_return(): # Use this in scripts to return to Wizard Shell
+    change_cmd_title(TITLE)
+    start_msg()
 
 # PROGRAM
 
@@ -188,12 +205,15 @@ if __name__ == '__main__':
 
         words = user_input.split()
 
-        for cmd, path in add_commands, add_commands_path:
+        p = 0
+
+        for cmd in add_commands:
             if words[0].lower() == cmd:
                 arg_input = user_input[low_input.find(words[0]) + len(words[0]):].strip()
-                imported_addon_cmd = importlib.import_module(path)
+                imported_addon_cmd = importlib.import_module(add_commands_path[p])
                 imported_addon_cmd.main(cmd, arg_input)
                 custom_cmd = True
+            p += 1
 
         if addons_index != -1:
             addons_input = user_input[addons_index + len("addons"):].strip()
@@ -201,9 +221,12 @@ if __name__ == '__main__':
                 addons_help()
             if addons_input == '--info':
                 addons_info()
-            if addons_input == '':
+            if not addons_input.strip():
                 addons_usage()
-            print()
+            for addon in addons:
+                if addons_input.lower() == addon.lower():
+                    addons_addon_help(addon)
+            print(f'{Style.RESET_ALL}')
             custom_cmd = True
 
         if ws_index != -1:
@@ -235,16 +258,17 @@ if __name__ == '__main__':
                             imported_script = importlib.import_module(file_name)
                             commands = imported_script.commands()
                             if len(ws_words) == 1:
-                                print(f'{Fore.GREEN}>>> Available commands for "{file_name}"')
-                                print(f'{Fore.YELLOW}>> {commands}{Style.RESET_ALL}\n')
+                                print(f'{Fore.GREEN}>>> Available commands for "{file_name}"\n')
+                                for cmd in commands:
+                                    print(f'{Fore.YELLOW}>> --{cmd}{Style.RESET_ALL}')
+                                print()
                             else:
                                 for command in commands:
                                     if ws_words[1] == f'--{command.lower()}':
-                                        command_true = False
+                                        command_true = True
                                         change_cmd_title(f'WS | Wizard Shell - {file_name}')
                                         imported_script = importlib.import_module(file_name)
                                         imported_script.main(command)
-                                        PROGRAM_RUN = False
                                 if not command_true:
                                     print(f'{Fore.RED}>>> Command "{ws_words[1]}" was not found!{Style.RESET_ALL}\n')
                     if not script_true:

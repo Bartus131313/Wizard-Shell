@@ -14,7 +14,7 @@ VERSION_URL = 'https://pastebin.com/raw/Buzs6RGN'
 
 PROGRAM_RUN = True
 
-VERSION = 'BETA 0.1.3.4'
+VERSION = 'BETA 0.1.3.5'
 LATEST_VERSION = ''
 
 DEF_COMMANDS = [
@@ -174,9 +174,12 @@ def addons_addon_help(addon): # Write all commands for written addon
 
 # FOR SCRIPTS TO RETURN
 
-def ws_return(): # Use this in scripts to return to Wizard Shell
+def ws_return(cls): # Use this in scripts to return to Wizard Shell
     change_cmd_title(TITLE)
-    start_msg()
+    if cls:
+        start_msg()
+    else:
+        print()
 
 # PROGRAM
 
@@ -267,6 +270,7 @@ if __name__ == '__main__':
                                     if ws_words[1] == f'--{command.lower()}':
                                         command_true = True
                                         change_cmd_title(f'WS | Wizard Shell - {file_name}')
+                                        print(f'{Fore.GREEN}>>> Started "{file_name}" script{Style.RESET_ALL}')
                                         imported_script = importlib.import_module(file_name)
                                         imported_script.main(command)
                                 if not command_true:

@@ -41,7 +41,7 @@ def info():
     print(f'{Fore.LIGHTBLACK_EX}   > Click any button to return')
     print(f'{Style.RESET_ALL}')
     os.system('pause >NUL')
-    ws.ws_return() # Return to Wizard Shell
+    ws.ws_return(True) # Return to Wizard Shell | True - clear the screen | False - do not clear the screen
 
 # SETTINGS
 
